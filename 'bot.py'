@@ -1,53 +1,33 @@
-import logging
 import os
+import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 TOKEN = os.getenv('TOKEN')
 
-MEDIAFIRE_LINKS = {
+LINKS = {
     "ME1-2017": "https://www.mediafire.com/file/zhhtlbpxvh3iu2l/ME1-2017.pdf?dl=1",
     "ME1-2018": "https://www.mediafire.com/file/rc6rwiwgwjktyrg/ME1-2018.pdf?dl=1",
-    "ME1-2019": "https://www.mediafire.com/file/1wj6x27k2auteay/ME1-2019.pdf?dl=1",
+    "ME1-2019": "https://www.mediafire.com/file/1wj6x27k2auteay/ME1-2019.pdf?dl=1"
 }
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [[InlineKeyboardButton("📚 GATE ME Papers", callback_data="GATE_ME")]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text(
-        "🎓 *GATE Mechanical Engineering Bot*\n\nClick for papers:",
-        reply_markup=reply_markup, parse_mode='Markdown'
-    )
+    kb = [[InlineKeyboardButton("📚 GATE ME", callback_data="GATE")]]
+    await update.message.reply_text("🎓 GATE Bot", reply_markup=InlineKeyboardMarkup(kb))
 
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-    
-    if query.data == "GATE_ME":
-        keyboard = [
-            [InlineKeyboardButton("ME1 2017", callback_data="ME1-2017")],
-            [InlineKeyboardButton("ME1 2018", callback_data="ME1-2018")],
-            [InlineKeyboardButton("ME1 2019", callback_data="ME1-2019")],
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text(
-            "📋 *Select Paper:*", reply_markup=reply_markup, parse_mode='Markdown'
-        )
-    elif query.data in MEDIAFIRE_LINKS:
-        link = MEDIAFIRE_LINKS[query.data]
-        await query.edit_message_text(
-            f"📥 *{query.data}*\n\n[⬇️ Download]({link})",
-            parse_mode='Markdown', disable_web_page_preview=True
-        )
+    q = update.callback_query
+    await q.answer()
+    if q.data == "GATE":
+        kb = [[InlineKeyboardButton(k, callback_data=k)] for k in LINKS]
+        await q.edit_message_text("Select:", reply_markup=InlineKeyboardMarkup(kb))
+    else:
+        await q.edit_message_text(f"[⬇️ {q.data}]({LINKS[q.data]})", 
+                                parse_mode='Markdown', disable_web_page_preview=True)
 
-def main():
+if __name__ == '__main__':
     app = Application.builder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(button))
     app.run_polling()
-
-if __name__ == '__main__':
-    main()
