@@ -1,101 +1,67 @@
 import logging
-import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
-TOKEN = '8760465218:AAHvGp0GcB5_bMU-WOT9rgnRDZLG92TMkYo'  # YOUR TOKEN!
-PAPERS_PATH = r"C:\Users\mmoha\Desktop\Telegram Bot\pyq_bot\Papers\GATE\ME"
+# ENABLE LOGGING
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-logging.basicConfig(level=logging.INFO)
+# YOUR BOT TOKEN FROM BOTFATHER
+TOKEN = "YOUR_BOT_TOKEN_HERE"
+
+# MEDIAFIRE DIRECT LINKS
+MEDIAFIRE_LINKS = {
+    "ME2007": "https://www.mediafire.com/file/YOUR_CODE/ME2007.pdf?dl=1",
+    "ME1-2017": "https://www.mediafire.com/file/zhhtlbpxvh3iu2l/ME1-2017.pdf?dl=1",
+    "ME1-2018": "https://www.mediafire.com/file/rc6rwiwgwjktyrg/ME1-2018.pdf?dl=1",
+    "ME1-2019": "https://www.mediafire.com/file/1wj6x27k2auteay/ME1-2019.pdf?dl=1",
+    # ADD MORE HERE
+}
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
-        [InlineKeyboardButton("🎓 2025-2023", callback_data='recent')],
-        [InlineKeyboardButton("📚 2022-2017", callback_data='mid')],
-        [InlineKeyboardButton("📖 2016-2010", callback_data='old')],
-        [InlineKeyboardButton("📜 2009-2007", callback_data='classic')],
-        [InlineKeyboardButton("🔍 Search Papers", callback_data='search')]
+        [InlineKeyboardButton("📚 GATE ME Papers", callback_data="GATE_ME")],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text('🎯 GATE ME 2007-2025\n\nClick or type year:', reply_markup=reply_markup)
+    await update.message.reply_text(
+        "🎓 *GATE Mechanical Engineering Bot*\n\n"
+        "Click below to access previous year papers:",
+        reply_markup=reply_markup,
+        parse_mode='Markdown'
+    )
 
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     
-    if query.data == 'recent':
+    if query.data == "GATE_ME":
         keyboard = [
-            [InlineKeyboardButton("ME1-2025", callback_data='ME1-2025')],
-            [InlineKeyboardButton("ME1-2024", callback_data='ME1-2024')],
-            [InlineKeyboardButton("ME1-2023", callback_data='ME1-2023')],
-            [InlineKeyboardButton("⬅️ Main", callback_data='start')]
+            [InlineKeyboardButton("ME 2007", callback_data="ME2007")],
+            [InlineKeyboardButton("ME1 2017", callback_data="ME1-2017")],
+            [InlineKeyboardButton("ME1 2018", callback_data="ME1-2018")],
+            [InlineKeyboardButton("ME1 2019", callback_data="ME1-2019")],
         ]
-    elif query.data == 'mid':
-        keyboard = [
-            [InlineKeyboardButton("ME1-2017", callback_data='ME1-2017'), InlineKeyboardButton("ME2-2017", callback_data='ME2-2017')],
-            [InlineKeyboardButton("ME1-2018", callback_data='ME1-2018')],
-            [InlineKeyboardButton("⬅️ Main", callback_data='start')]
-        ]
-    elif query.data == 'old':
-        keyboard = [
-            [InlineKeyboardButton("ME2016", callback_data='ME2016')],
-            [InlineKeyboardButton("ME2015", callback_data='ME2015')],
-            [InlineKeyboardButton("ME2014", callback_data='ME2014')],
-            [InlineKeyboardButton("⬅️ Main", callback_data='start')]
-        ]
-    elif query.data == 'classic':
-        keyboard = [
-            [InlineKeyboardButton("ME2007", callback_data='ME2007')],
-            [InlineKeyboardButton("ME2008", callback_data='ME2008')],
-            [InlineKeyboardButton("ME2009", callback_data='ME2009')],
-            [InlineKeyboardButton("⬅️ Main", callback_data='start')]
-        ]
-    elif query.data == 'search':
-        await query.edit_message_text('🔍 Type year or paper name (like "2017", "ME1")')
-        return
-    else:
-        # DOWNLOAD PDF
-        pdf_filename = f"{query.data}.pdf"
-        pdf_path = os.path.join(PAPERS_PATH, pdf_filename)
-        
-        if os.path.exists(pdf_path):
-            with open(pdf_path, 'rb') as pdf:
-                await query.message.reply_document(
-                    document=pdf,
-                    filename=pdf_filename,
-                    caption=f"📥 {pdf_filename} - GATE ME"
-                )
-            await query.edit_message_text("✅ Downloaded! Type year or /start")
-            return
-        else:
-            await query.edit_message_text(f"❌ {pdf_filename} not found!")
-            return
-    
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await query.edit_message_text('🎯 Select paper:', reply_markup=reply_markup)
-
-async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.message.text.lower()
-    found = []
-    
-    for filename in os.listdir(PAPERS_PATH):
-        if filename.endswith('.pdf'):
-            name = filename[:-4].lower()
-            if any(word in name for word in query.split()):
-                found.append(filename[:-4])
-    
-    if found:
-        keyboard = [[InlineKeyboardButton(paper, callback_data=paper)] for paper in found[:10]]
-        keyboard.append([InlineKeyboardButton("🏠 Main", callback_data='start')])
         reply_markup = InlineKeyboardMarkup(keyboard)
-        await update.message.reply_text(f'✅ Found {len(found)} papers:', reply_markup=reply_markup)
-    else:
-        await update.message.reply_text(f'❌ No papers match "{query}"\n\nTry: "2017", "ME1", "2007", "GATE"')
+        await query.edit_message_text(
+            "📋 *Select GATE ME Paper:*\n\n"
+            "Choose year to download:",
+            reply_markup=reply_markup,
+            parse_mode='Markdown'
+        )
+    elif query.data in MEDIAFIRE_LINKS:
+        await query.edit_message_text(
+            f"📥 *Downloading {query.data}*\n\n"
+            f"👆 Click link below:\n\n"
+            f"[⬇️ Download {query.data}.pdf]({MEDIAFIRE_LINKS[query.data]})",
+            parse_mode='Markdown',
+            disable_web_page_preview=True
+        )
+
+def main():
+    app = Application.builder().token(TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(button))
+    app.run_polling()
 
 if __name__ == '__main__':
-    app = Application.builder().token(TOKEN).build()
-    app.add_handler(CommandHandler('start', start))
-    app.add_handler(CallbackQueryHandler(button))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
-    print("🤖 FULL GATE ME BOT (Buttons + Search) LIVE!")
-    app.run_polling(drop_pending_updates=True)
+    main()
